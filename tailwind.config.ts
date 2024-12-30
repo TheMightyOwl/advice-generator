@@ -23,6 +23,12 @@ export default {
         "grey-blue": "#4e5d73",
         "dark-grey-blue": "#323a49",
         "dark-blue": "#1f2632",
+      },
+      fontSize: {
+        xs: "0.7rem",
+      },
+      letterSpacing: {
+        widest: "0.25rem",
       }
     },
   },
