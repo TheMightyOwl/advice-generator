@@ -3,15 +3,15 @@
 @tailwind utilities;
 
 @layer base {
-
+  body {
+    @apply bg-dark-blue;
+  }  
 }
 
-body {
-  @apply bg-dark-blue;
-}
-
-.divider {
-  background-image: url(/public/pattern-divider-mobile.svg);
-  background-repeat: no-repeat;
-  background-position: center;
+@layer components {
+  .divider {
+    background-image: url(/public/pattern-divider-mobile.svg);
+    background-repeat: no-repeat;
+    background-position: center;
+  }
 }

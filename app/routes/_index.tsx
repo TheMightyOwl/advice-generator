@@ -1,9 +1,8 @@
 import type { MetaFunction } from "@remix-run/node";
 import Die from "../../public/icon-dice.svg"
-import { Suspense, useState } from "react";
-import { useLoaderData, Await, data, useFetcher } from "@remix-run/react";
-import { useRevalidator } from 'react-router-dom';
-import type { LoaderFunctionArgs } from "@remix-run/node";
+import { Suspense, useState, useEffect } from "react";
+import { useLoaderData, Await, data, useFetcher, useRouteLoaderData } from "@remix-run/react";
+import type { Slip } from '~/routes/data'
 
 export const meta: MetaFunction = () => {
   return [
@@ -12,54 +11,56 @@ export const meta: MetaFunction = () => {
   ];
 };
 
-export async function slowAndDeferrable() {
-  const data = await fetch("https://api.adviceslip.com/advice");
-  const res = await data.json();
-  const slip: Slip = res.slip;
-  const promise: Promise<Slip> = new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(slip);
-    }, 1200);
-  });
-  return promise;
-}
-
-export async function loader({ request }: LoaderFunctionArgs) {
-  const data = slowAndDeferrable();
-  console.log(data);
-  return { data };
-}
-
-type Slip = {
-  id: number,
-  advice: string,
-}
-
 export default function Index() {
-  const { data } = useLoaderData<typeof loader>();
-  const revalidator = useRevalidator();
+  const [slip, setSlip] = useState<Slip>({ id: -1, advice: "" });
+
+  const fetcher = useFetcher();
+
+  useEffect(() => {
+    reload();
+  }, []);
+
+  useEffect(() => {
+    if (fetcher.data) {
+      setSlip(fetcher.data as Slip);
+    }
+  }, [fetcher.data]);
+
+  function reload() {
+    const someData = fetcher.load("/data");
+  }
 
   return (
     <div className="min-w-screen min-h-screen">
-      <div className="bg-dark-grey-blue text-center mx-4 p-7 pb-16 rounded-lg mt-[140px] md:w-[460px] md:mx-auto">
-        <Suspense fallback={<p>loading...</p>}>
-          <Await resolve={data}>
-            {(res) => {
-              const id = res.id;
-              const advice = res.advice;
-              return (
-                <>
-                  <h1 className="text-neon-green font-extrabold text-xs tracking-widest">ADVICE #{id}</h1>
-                  <p className="text-2xl text-light-cyan font-extrabold my-5">{advice}</p>
-                </>
-              )
-            }}
-          </Await>
-        </Suspense>
-        <div className="divider w-full h-[20px]"></div>
+      <div className="bg-dark-grey-blue text-center mx-4 p-7 rounded-lg mt-[140px] md:w-[460px] md:mx-auto">
+        {fetcher.state === "idle" && slip.id !== -1
+          ?
+          <>
+            <h1 className="text-neon-green font-extrabold text-xs tracking-widest">ADVICE #{slip.id}</h1>
+            <p className="text-2xl text-light-cyan font-extrabold mt-5 mb-7">{slip.advice}</p>
+          </>
+          :
+          <>
+            <div className="bg-dark-blue mb-4 shadow rounded-md p-4 max-w-sm w-full mx-auto">
+              <div className="animate-pulse flex space-x-4">
+                <div className="flex-1 space-y-6 py-1">
+                  <div className="h-2 bg-slate-700 rounded"></div>
+                  <div className="space-y-3">
+                    <div className="grid grid-cols-3 gap-4">
+                      <div className="h-2 bg-slate-700 rounded col-span-2"></div>
+                      <div className="h-2 bg-slate-700 rounded col-span-1"></div>
+                    </div>
+                    <div className="h-2 bg-slate-700 rounded"></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </>
+        }
+        <div className="divider w-full h-[20px] md:bg-[url(/public/pattern-divider-desktop.svg)] my-9"></div>
       </div>
       <div className="relative top-[-32px] w-full flex flex-row justify-center">
-        <button className="bg-neon-green rounded-full w-[64px] h-[64px]" onClick={revalidator.revalidate}>
+        <button className="hover:drop-shadow-[0_0_24px_rgba(82,255,168,0.8)] bg-neon-green rounded-full w-[58px] h-[58px]" onClick={reload}>
           <img className="mx-auto" src={Die} alt="" />
         </button>
       </div>

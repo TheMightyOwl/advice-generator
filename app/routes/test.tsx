@@ -61,7 +61,6 @@ export default function Test() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        console.log(data);
         reload();
     }, []);
 

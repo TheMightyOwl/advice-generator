@@ -1,26 +1,23 @@
 import type { LoaderFunctionArgs } from "@remix-run/node";
 
-export function quickAndCritical() {
-    return new Promise((resolve) => {
+export async function slowAndDeferrable() {
+    const data = await fetch("https://api.adviceslip.com/advice");
+    const res = await data.json();
+    const slip: Slip = res.slip;
+    const promise: Promise<Slip> = new Promise((resolve) => {
         setTimeout(() => {
-            resolve("quickAndCritical");
-        }, 500);
+            resolve(slip);
+        }, 1200);
     });
-}
-
-export function slowAndDeferrable() {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve(Math.random());
-        }, 2000);
-    });
+    return promise;
 }
 
 export async function loader({ request }: LoaderFunctionArgs) {
-    // const critical = await quickAndCritical();
-    const data = await slowAndDeferrable();
+    const slip: Slip = await slowAndDeferrable();
+    return slip;
+}
 
-    return {
-        data
-    }
+export type Slip = {
+    id: number,
+    advice: string,
 }
